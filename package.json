@@ -1,7 +1,7 @@
 {
-  "name": "kafka-test",
+  "name": "deployable-kafka",
   "version": "1.0.0",
-  "description": "kafka test",
+  "description": "Kafka test",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
