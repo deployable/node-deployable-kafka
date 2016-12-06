@@ -4,6 +4,7 @@ services:
 
   zookeeper:
     build: docker/
+    image: deployable/kafka:latest
     command: zookeeper
     ports:
      - "2181:2181"

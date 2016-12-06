@@ -1,6 +1,8 @@
 "use strict";
 
-const kafka       = require('kafka-node')
+const Promise     = require('bluebird')
+const kafka       = Promise.promisifyAll(require('kafka-node'))
+const Producer    = Promise.promisifyAll( kafka.Producer )
 const client      = new kafka.Client('10.8.8.8:2181')
 //const consumer    = new kafka.Consumer(client)
 
@@ -22,7 +24,8 @@ class Recieve {
   eventSetup(){
     this.consumer.on('error', this.onError)
     this.consumer.on('message', msg => this.onMessage.call(this, msg) )
-    setInterval(() =>{
+
+    setInterval(() => {
       let diff = this.recieveCount - this.recieveTimerCount
       console.log('timer 10 count:%s m/s:%s', diff, diff/10)
       this.recieveTimerCount = this.recieveCount
@@ -45,19 +48,25 @@ class Recieve {
 class Create {
 
   constructor(topic, partition) {
-    this.producer = new kafka.Producer(client);
+
+    this.producer = new Producer(client);
+
     this.createCount = 0;
 
     this.km = new kafka.KeyedMessage('key', 'message');
+
     this.payloads = [
       { 
         topic: 'my-test-topic', 
-        messages: 'hi this is a slightly longer message for topic 1 that should take up some more room',
+        messages: [
+          'hi this is a asdf asdf asdf asdf asdf asdf slightly longer message for topic 1 that should take up some more room',
+          'dspfijjjados;fjas;kfmkals;mfk;lsadmf;laksmf;aslkdmf;alsdkfmd;alskfmas;dfkewpkfpewkpokpgkfds;lgmkfldsmg.dfnn.gfdngdsgnfdslgndslfgdsf'
+        ],
         partition: 0 
       },
       { 
         topic: 'topic2',
-        messages: ['hello', 'world', this.km] 
+        messages: ['hello', this.km] 
       }
     ];
 
@@ -65,39 +74,34 @@ class Create {
   }
 
   eventSetup () {
-    this.producer.on('ready', msg => this.onReady.call(this, msg) )
-    this.producer.on('error', this.onError)
+    this.producer.on('ready', msg => this.produce() )
+    this.producer.on('error', err => console.error('error', err) )
   }
 
-  onError (err) {
-    console.error('error', err)
-  }
-
-  onReady (message) {
-    process.nextTick(() => {
-      this.loopCreateCount = 0;
-      for(let i=0; i++; i<=1000){
-        this.producer.send(this.payloads, (err, data) => {
-          this.createCount++
-          this.loopCreateCount++
-          if ( this.createCount % 1000 === 0 )
-            console.log('created', this.createCount,data)
-        })
-        if (i === 1000) this.onReady();
-      }
-    });
+  produce () {
+    console.log('ready', this.createCount)
+    console.log('next tick')
+    return this.producer.sendAsync(this.payloads)
+      .then(data => {
+        console.log('data', data)
+        this.createCount++
+        if ( this.createCount % 1000 === 0 )
+          console.log('created', this.createCount, data)
+        this.produce()
+      })
+      .catch(err => console.error(err))
   }
 
 }
 
 
-if ( process.argv[2] === undefined || process.argv[2] === 'recieve' ){
-  let recieve = new Recieve('my-test-topic', 0);
-}
+if ( process.argv[2] === undefined || process.argv[2] === 'recieve' )
+  let recieve = new Recieve('my-test-topic', 0)
 
-if ( process.argv[2] === undefined || process.argv[2] === 'create' ){
-  let create = new Create('my-test-topic', 0);
-}
+
+if ( process.argv[2] === undefined || process.argv[2] === 'create' )
+  let create = new Create('my-test-topic', 0)
+
 
 
 module.exports = {
