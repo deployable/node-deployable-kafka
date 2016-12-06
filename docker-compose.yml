@@ -1,0 +1,36 @@
+version: "2"
+
+services:
+
+  zookeeper:
+    build: docker/
+    command: zookeeper
+    ports:
+     - "2181:2181"
+    networks:
+     - etc
+
+  kafka:
+    build: docker/
+    command: kafka
+    ports:
+     - "9092:9092"
+    networks:
+     - etc
+    depends_on:
+      - zookeeper
+
+  kafka-setup:
+    build: docker
+    command: setup
+    networks:
+     - etc
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_TOPIC: my-test-topic
+
+networks:
+  etc:
+    driver: bridge
+

@@ -1,0 +1,21 @@
+{
+  "name": "kafka-test",
+  "version": "1.0.0",
+  "description": "kafka test",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "kafka"
+  ],
+  "author": "code@deployable.co",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "^2.3.0",
+    "kafka-node": "^1.0.2",
+    "lodash": "~4.17.1",
+    "socket.io": "~1.7.1",
+    "socket.io-kafka": "~0.1.0"
+  }
+}
